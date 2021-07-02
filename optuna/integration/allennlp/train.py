@@ -10,6 +10,7 @@ from os import PathLike
 from typing import List, Optional, Union
 
 from optuna import Trial
+from optuna import TrialPruned
 
 import torch
 import torch.distributed as dist
@@ -161,24 +162,29 @@ def train_model_with_optuna(
             f"World size: {world_size}"
         )
 
-        mp.spawn(
-            _train_worker_with_optuna,
-            args=(
-                trial,
-                params.duplicate(),
-                serialization_dir,
-                include_package,
-                dry_run,
-                node_rank,
-                primary_addr,
-                primary_port,
-                world_size,
-                device_ids,
-                file_friendly_logging,
-                include_in_archive,
-            ),
-            nprocs=num_procs,
-        )
+        try:
+            mp.spawn(
+                _train_worker_with_optuna,
+                args=(
+                    params.duplicate(),
+                    serialization_dir,
+                    include_package,
+                    dry_run,
+                    node_rank,
+                    primary_addr,
+                    primary_port,
+                    world_size,
+                    device_ids,
+                    file_friendly_logging,
+                    include_in_archive,
+                    trial,
+                ),
+                nprocs=num_procs,
+            )
+        except Exception as e:
+            if "optuna.exceptions.TrialPruned" in str(e):
+                raise TrialPruned()
+
         if dry_run:
             return None
         else:
