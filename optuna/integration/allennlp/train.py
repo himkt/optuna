@@ -31,7 +31,6 @@ logger = logging.getLogger(__name__)
 
 
 def train_model_with_optuna(
-    trial: Trial,
     params: Params,
     serialization_dir: Union[str, PathLike],
     recover: bool = False,
@@ -40,6 +39,7 @@ def train_model_with_optuna(
     include_package: List[str] = None,
     dry_run: bool = False,
     file_friendly_logging: bool = False,
+    trial: Trial = None,
 ) -> Optional[Model]:
     """
     Trains the model specified in the given [`Params`](../common/params.md#params) object, using the data
@@ -89,13 +89,13 @@ def train_model_with_optuna(
     # one cuda device, we just run a single training process.
     if distributed_params is None:
         model = _train_worker_with_optuna(
-            trial=trial,
             process_rank=0,
             params=params,
             serialization_dir=serialization_dir,
             include_package=include_package,
             dry_run=dry_run,
             file_friendly_logging=file_friendly_logging,
+            trial=trial,
         )
 
         if not dry_run:
@@ -188,7 +188,6 @@ def train_model_with_optuna(
 
 
 def _train_worker_with_optuna(
-    trial: Trial,
     process_rank: int,
     params: Params,
     serialization_dir: Union[str, PathLike],
@@ -201,6 +200,7 @@ def _train_worker_with_optuna(
     distributed_device_ids: List[int] = None,
     file_friendly_logging: bool = False,
     include_in_archive: List[str] = None,
+    trial: Trial = None,
 ) -> Optional[Model]:
     """
     Helper to train the configured model/experiment. In distributed mode, this is spawned as a
