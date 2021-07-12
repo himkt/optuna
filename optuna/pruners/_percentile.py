@@ -15,6 +15,7 @@ def _get_best_intermediate_result_over_steps(
     trial: "optuna.trial.FrozenTrial", direction: StudyDirection
 ) -> float:
 
+    print(f"intermediate_values: {trial.intermediate_values}")
     values = np.asarray(list(trial.intermediate_values.values()), dtype=float)
     if direction == StudyDirection.MAXIMIZE:
         return np.nanmax(values)
@@ -37,6 +38,10 @@ def _get_percentile_intermediate_result_over_trials(
     intermediate_values = [
         t.intermediate_values[step] for t in completed_trials if step in t.intermediate_values
     ]
+    print("#_get_percentile_intermediate_result_over_trials")
+    print(f"completed_trials: {completed_trials}")
+    print(f"intermediate_values: {intermediate_values}")
+    print(f"len(intermediate_values) ({len(intermediate_values)}) < n_min_trials ({n_min_trials}): {len(intermediate_values) < n_min_trials}")
 
     if len(intermediate_values) < n_min_trials:
         return math.nan
@@ -176,36 +181,48 @@ class PercentilePruner(BasePruner):
 
     def prune(self, study: "optuna.study.Study", trial: "optuna.trial.FrozenTrial") -> bool:
 
+        # TODO (himkt) 怪しい
         all_trials = study.get_trials(deepcopy=False)
         n_trials = len([t for t in all_trials if t.state == TrialState.COMPLETE])
+
+        print("#PercentilePruner.prune")
+        print(f"n_trials: {n_trials}, n_startup_trials: {self._n_startup_trials}")
 
         if n_trials == 0:
             return False
 
+        print(f"n_trials < self._n_startup_trials: {n_trials < self._n_startup_trials}")
         if n_trials < self._n_startup_trials:
             return False
 
         step = trial.last_step
+        print(f"step: {step}")
         if step is None:
             return False
 
         n_warmup_steps = self._n_warmup_steps
+        print(f"n_warmup_steps: {n_warmup_steps}")
         if step < n_warmup_steps:
             return False
 
-        if not _is_first_in_interval_step(
+        is_first_in_interval_step = _is_first_in_interval_step(
             step, trial.intermediate_values.keys(), n_warmup_steps, self._interval_steps
-        ):
+        )
+        print(f"is_first_in_interval_step: {is_first_in_interval_step}")
+        print(f"intermediate_values.keys(): {trial.intermediate_values.keys()}")
+        if not is_first_in_interval_step:
             return False
 
         direction = study.direction
         best_intermediate_result = _get_best_intermediate_result_over_steps(trial, direction)
+        print(f"best_intermediate_result: {best_intermediate_result}")
         if math.isnan(best_intermediate_result):
             return True
 
         p = _get_percentile_intermediate_result_over_trials(
             all_trials, direction, step, self._percentile, self._n_min_trials
         )
+        print(f"p: {p}")
         if math.isnan(p):
             return False
 
