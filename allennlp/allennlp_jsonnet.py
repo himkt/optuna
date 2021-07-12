@@ -70,12 +70,8 @@ if __name__ == "__main__":
 
     study = optuna.create_study(
         direction="maximize",
-        storage=None,
-        # pruner=optuna.pruners.HyperbandPruner(),
-        # pruner=optuna.pruners.ThresholdPruner(lower=0, upper=0.3),
-        # pruner=optuna.pruners.MedianPruner(),
-        # pruner=optuna.pruners.SuccessiveHalvingPruner(),
-        pruner=optuna.pruners.PercentilePruner(percentile=30.0),
+        storage="sqlite:///allennlp.db",
+        pruner=optuna.pruners.HyperbandPruner(),
         sampler=optuna.samplers.TPESampler(seed=10),
         study_name=study_name,
         load_if_exists=True,

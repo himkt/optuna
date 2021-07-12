@@ -60,7 +60,7 @@ local ENCODER = CNN_FIELDS(
     batch_size: 256,
   },
   trainer: {
-    num_epochs: 10,
+    num_epochs: 30,
     optimizer: {
       lr: 0.1,
       type: 'adam',
