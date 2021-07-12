@@ -124,5 +124,17 @@ class AllenNLPPruningCallback(TrainerCallback):
             return
 
         self._trial.report(float(value), epoch)
-        if self._trial.should_prune():
+        print(f"trials_id: {self._trial._trial_id}, last trials: {self._trial.study.trials[-1]._trial_id}")
+        print(f"Current intermediates: {self._trial.study.trials[-1].intermediate_values}")
+
+        should_prune = self._trial.should_prune()
+        print("# Optuna")
+        print(f"is_primary: {is_primary}")
+        for trial in self._trial.study.trials:
+            text = f"trial#{trial.number} state: {trial.state}, value: {trial.value}"
+            text += f", values: {trial.values}, params: {trial.params}"
+            print(text)
+        print(f"len(trials) = {len(self._trial.study.trials)}")
+        print(f"should_prune() => {should_prune}")
+        if should_prune:
             raise optuna.TrialPruned()
