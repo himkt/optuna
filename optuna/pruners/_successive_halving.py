@@ -247,6 +247,8 @@ def _get_competing_values(
 
     competing_values = [t.system_attrs[rung_key] for t in trials if rung_key in t.system_attrs]
     competing_values.append(value)
+    print("#optuna_hyperband")
+    print(f"competing_values: {competing_values}, len(competing_values): {len(competing_values)}")
     return competing_values
 
 
