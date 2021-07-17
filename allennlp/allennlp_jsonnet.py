@@ -70,7 +70,9 @@ if __name__ == "__main__":
 
     study = optuna.create_study(
         direction="maximize",
-        storage="sqlite:///allennlp.db",
+        # storage="sqlite:///allennlp.db",
+        # storage="mysql://root:root@127.0.0.1/optuna",
+        storage="postgresql://127.0.0.1:5432/optuna?user=root&password=root",
         pruner=optuna.pruners.HyperbandPruner(),
         sampler=optuna.samplers.TPESampler(seed=10),
         study_name=study_name,

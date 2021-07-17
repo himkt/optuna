@@ -201,6 +201,9 @@ def train_model_with_optuna(
                 nprocs=num_procs,
             )
         except Exception as e:
+            print("Catch exception")
+            print(type(e))
+            print(e)
             if "optuna.exceptions.TrialPruned" in str(e):
                 raise TrialPruned()
             raise e
