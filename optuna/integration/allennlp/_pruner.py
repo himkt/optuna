@@ -130,10 +130,10 @@ class AllenNLPPruningCallback(TrainerCallback):
         should_prune = self._trial.should_prune()
         print("# Optuna")
         print(f"is_primary: {is_primary}")
-        # for trial in self._trial.study.trials:
-        #     text = f"trial#{trial.number} state: {trial.state}, value: {trial.value}"
-        #     text += f", values: {trial.values}, params: {trial.params}"
-        #     print(text)
+        for trial in self._trial.study.trials:
+            text = f"trial#{trial.number} state: {trial.state}, value: {trial.value}"
+            text += f", values: {trial.values}, params: {trial.params}"
+            print(text)
         print(f"len(trials) = {len(self._trial.study.trials)}")
         print(f"should_prune() => {should_prune}")
         if should_prune:
