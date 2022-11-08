@@ -1,0 +1,51 @@
+name: Visual Regression
+
+on:
+  pull_request: {}
+
+jobs:
+  visual-regression-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Setup cache
+        uses: actions/cache@v2
+        env:
+          cache_name: visual-regression
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-${{ matrix.python-version }}-${{ env.cache-name }}-${{ hashFiles('**/setup.py') }}-v1
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.python-version }}-${{ env.cache-name }}-${{ hashFiles('**/setup.py') }}
+
+      - name: Install optuna
+        run: pip install --progress-bar off .
+
+      - name: Install dependencies
+        run: |
+          git clone https://github.com/optuna/optuna-visualization-regression-tests.git
+          pip install -r optuna-visualization-regression-tests/requirements.txt
+
+      - name: Build
+        run: |
+          python optuna-visualization-regression-tests/visual_regression_tests.py --heavy --output-dir ./public
+        env:
+          OMP_NUM_THREADS: 1
+
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v1.0
+        with:
+          publish-dir: './public'
+          production-branch: master
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
